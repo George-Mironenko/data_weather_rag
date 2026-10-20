@@ -1,9 +1,16 @@
 from io import BytesIO
 from pathlib import Path
 from typing import Union
+import logging
 
 import boto3
 from botocore.client import Config
+
+from botocore.exceptions import (
+    ConnectTimeoutError,
+    EndpointConnectionError,
+    NoCredentialsError,
+)
 
 
 class S3BucketService:
@@ -20,14 +27,27 @@ class S3BucketService:
         self.secret_key = secret_key
 
     def create_s3_client(self) -> boto3.client:
-        client = boto3.client(
-            "s3",
-            endpoint_url=self.endpoint,
-            aws_access_key_id=self.access_key,
-            aws_secret_access_key=self.secret_key,
-            config=Config(signature_version="s3v4"),
-        )
-        return client
+        try:
+            client = boto3.client(
+                "s3",
+                endpoint_url=self.endpoint,
+                aws_access_key_id=self.access_key,
+                aws_secret_access_key=self.secret_key,
+                config=Config(signature_version="s3v4"),
+            )
+            return client
+        except NoCredentialsError:
+            logging.error('Check your AWS account credentials.')
+            return None
+        except EndpointConnectionError:
+            logging.error('No connection to the S3 server.')
+            return None
+        except ConnectTimeoutError:
+            logging.error('Connection timeout')
+            return None
+        except Exception as error:
+            logging.error(str(error))
+            return None
 
     def upload_file_object(
         self,
