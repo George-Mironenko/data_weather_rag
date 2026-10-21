@@ -41,7 +41,7 @@ default_args = {
 with DAG(
     dag_id='weather_data_get',
     default_args=default_args,
-    schedule='@daily',
+    schedule='@hourly',
     catchup=False,
 ) as dag:
 
@@ -218,7 +218,8 @@ with DAG(
             task_logger.debug("Название файла создано")
 
             # Отправка данных
-            prefix = f"raw/pirateweather/{datetime.now().year}/{datetime.now().month:02d}/{datetime.now().day}/"
+            prefix = (f"raw/pirateweather/forecast/{datetime.now().year}/"
+                      f"{datetime.now().month:02d}/{datetime.now().day}/")
             s3.upload_file_object(prefix, file_name, json_bytes)
 
             task_logger.info("Успешно отправили файл в s3")
