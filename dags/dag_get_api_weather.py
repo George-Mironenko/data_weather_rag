@@ -6,10 +6,10 @@ from airflow.sdk import DAG
 from airflow.sdk import task
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.models import Variable
-
 import logging
 
 from s3_bucket_service.s3_class import S3BucketService
+from .extensions_for_orchestration.validators import validate_cities
 
 
 def get_s3_client():
@@ -67,111 +67,9 @@ with DAG(
 
 
     @task
-    def get_cities_list(
-            records: tuple[tuple[str, float, float], ...]
-    ) -> list[dict] | None:
-        """
-        Преобразует список кортежей (name, lat, lon) в список словарей.
-
-        Проверки для каждой записи:
-          1. Запись — кортеж из 3 элементов.
-          2. name — непустая строка.
-          3. lat/lon — числа (int, float, Decimal).
-          4. lat/lon — не NaN и не inf.
-          5. lat в диапазоне [-90, 90], lon — [-180, 180].
-
-        :param records: Список кортежей (name, lat, lon) из БД
-        :return: Список словарей [{"city": ..., "lat": ..., "lon": ...}]
-                 или None, если ни одна запись не прошла валидацию
-        """
-        try:
-            if not records:
-                task_logger.error("Ошибка: в функцию передан пустой список")
-                return None
-
-            def write_log(warning: str):
-                task_logger.warning(f"Запись #{idx} пропущена: {warning}")
-
-            cities_list = []
-
-            for idx, record in enumerate(records, 1):
-                # 1. Проверка, что запись — кортеж
-                if not isinstance(record, tuple):
-                    write_log("ожидался tuple")
-                    continue
-
-                # 2. Проверка длины кортежа (name, lat, lon)
-                if len(record) != 3:
-                    write_log(f"ожидалось 3 элемента, получено {len(record)}")
-                    continue
-
-                name, lat, lon = record
-
-                # 3. Проверка названия города
-                if not isinstance(name, str):
-                    write_log("название города не строка")
-                    continue
-
-                if not name.strip():
-                    write_log("пустая строка или пробелы в названии")
-                    continue
-
-                # 4. Проверка координат на числовой тип
-                # Postgres может вернуть Decimal, поэтому проверяем через (int, float, Decimal)
-                if not isinstance(lat, (int, float)):
-                    write_log(f"широта не число: {type(lat).__name__}")
-                    continue
-
-                if not isinstance(lon, (int, float)):
-                    write_log(f"долгота не число: {type(lon).__name__}")
-                    continue
-
-                # 5. Приведение к float (Decimal -> float)
-                lat_f = float(lat)
-                lon_f = float(lon)
-
-                # 6. Проверка, что координаты не NaN / inf
-                import math
-                if math.isnan(lat_f) or math.isinf(lat_f):
-                    write_log(f"широта NaN или inf: {lat}")
-                    continue
-
-                if math.isnan(lon_f) or math.isinf(lon_f):
-                    write_log(f"долгота NaN или inf: {lon}")
-                    continue
-
-                # 7. Проверка диапазонов: широта -90..90, долгота -180..180
-                if not (-90.0 <= lat_f <= 90.0):
-                    write_log(f"широта вне диапазона [-90, 90]: {lat_f}")
-                    continue
-
-                if not (-180.0 <= lon_f <= 180.0):
-                    write_log(f"долгота вне диапазона [-180, 180]: {lon_f}")
-                    continue
-
-                # 8. Всё ок — добавляем
-                cities_list.append({
-                    "city": name.strip(),
-                    "lat": lat_f,
-                    "lon": lon_f,
-                })
-
-            task_logger.debug("Успешно список преобразован")
-
-            if not cities_list:
-                task_logger.error("Ни одна запись не прошла валидацию.")
-                return None
-
-            task_logger.info(
-                f"Прошли валидацию {len(cities_list)} из {len(records)} записей"
-            )
-            return cities_list
-
-        except Exception as error:
-            task_logger.error(
-                f"Ошибка при преобразовании списка кортежей в список словарей: {error}"
-            )
-            return None
+    def get_cities_list(records) -> list[dict] | None:
+        """Валидирует города из БД."""
+        return validate_cities(records)
 
     @task
     def get_city_weather(city_data: str):
