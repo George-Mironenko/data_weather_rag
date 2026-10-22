@@ -24,6 +24,10 @@ def validate_cities(
     :return: Список словарей [{"city": ..., "lat": ..., "lon": ...}]
              или None, если ни одна запись не прошла валидацию
     """
+    if not isinstance(records, tuple):
+        logger.error("Ошибка: в функцию передан не tuple")
+        return None
+
     if not records:
         logger.error("Ошибка: в функцию передан пустой список")
         return None

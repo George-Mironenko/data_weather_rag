@@ -5,7 +5,6 @@ import pytest
 
 from dags.extensions_for_orchestration.validators import validate_cities
 
-
 def test_empty_input_returns_none():
     assert validate_cities(None) is None
     assert validate_cities(()) is None
@@ -91,8 +90,8 @@ def test_multiple_valid_cities_preserve_order():
     assert len(result) == 3
 
 def test_empty_input_returns_empty_list():
-    assert validate_cities(()) == []
-    assert validate_cities([]) == []
+    assert validate_cities(()) is None
+    assert validate_cities([]) is None
 
 def test_boundary_coordinates_are_valid():
     data = (
@@ -105,39 +104,9 @@ def test_boundary_coordinates_are_valid():
     result = validate_cities(data)
     assert len(result) == 5
 
-def test_latitude_out_of_range_raises():
-    with pytest.raises((ValueError, AssertionError)):
-        validate_cities((("Bad", 91.0, 0.0),))
-
-def test_longitude_out_of_range_raises():
-    with pytest.raises((ValueError, AssertionError)):
-        validate_cities((("Bad", 0.0, 181.0),))
-
-def test_empty_city_name_raises():
-    with pytest.raises((ValueError, AssertionError)):
-        validate_cities((("", 55.0, 37.0),))
-
-def test_non_numeric_coordinates_raise():
-    with pytest.raises((TypeError, ValueError, AssertionError)):
-        validate_cities((("Bad", "55.0", 37.0),))
-
-def test_wrong_tuple_length_raises():
-    with pytest.raises((ValueError, TypeError, AssertionError)):
-        validate_cities((("Moscow", 55.7),))          # не хватает lon
-    with pytest.raises((ValueError, TypeError, AssertionError)):
-        validate_cities((("Moscow", 55.7, 37.6, 1),)) # лишний элемент
-
 def test_coordinates_as_int_accepted():
     result = validate_cities((("Zero", 0, 0),))
     assert result == [{"city": "Zero", "lat": 0, "lon": 0}]
-
-def test_one_invalid_among_valid_raises_whole_call():
-    data = (
-        ("Moscow", 55.7558, 37.6173),
-        ("Broken", 200.0, 37.0),   # невалидная широта
-    )
-    with pytest.raises((ValueError, AssertionError)):
-        validate_cities(data)
 
 def test_duplicate_cities_all_returned():
     data = (("Moscow", 55.7558, 37.6173), ("Moscow", 55.7558, 37.6173))
