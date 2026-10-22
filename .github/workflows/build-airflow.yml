@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - dev-airflow
   pull_request:
     branches:
       - main
