@@ -24,22 +24,22 @@ x-airflow-common:
       condition: service_healthy
 
 services:
+
   postgres:
-    build: ./postgres
+    image: postgres:16
     environment:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U airflow -d airflow"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
+      test: [ "CMD", "pg_isready", "-U", "airflow" ]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+    
   airflow-init:
     <<: *airflow-common
     entrypoint: /bin/bash
@@ -65,7 +65,7 @@ services:
     <<: *airflow-common
     command: api-server
     ports:
-      - "8080:8080"
+      - "8081:8080"
     restart: always
     depends_on:
       - postgres
@@ -78,26 +78,6 @@ services:
     depends_on:
       - postgres
       - airflow-init
-
-  airflow-worker:
-    <<: *airflow-common
-    command: celery worker
-    restart: always
-    depends_on:
-      - postgres
-      - airflow-scheduler
-
-  weather_dbt:
-    build:
-      context: ./dbt_project
-    container_name: weather_dbt
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./dbt_project:/dbt
-    working_dir: /dbt
-    command: [ "dbt", "run" ]
 
 volumes:
   postgres-db-volume:

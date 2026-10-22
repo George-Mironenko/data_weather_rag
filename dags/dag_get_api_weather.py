@@ -214,7 +214,8 @@ with DAG(
 
             json_bytes = json.dumps(data, ensure_ascii=False).encode('utf-8')
 
-            file_name = f'data_{city}-{datetime.now().year}-{datetime.now().month:02d}-{datetime.now().day}.json'
+            file_name = (f'data_{city}-{datetime.now().year}-{datetime.now().month:02d}-{datetime.now().day}'
+                         f'-{datetime.now().time()}.json')
             task_logger.debug("Название файла создано")
 
             # Отправка данных
