@@ -67,7 +67,6 @@ services:
     command: api-server
     ports:
       - "8081:8080"
-    restart: always
     depends_on:
       - postgres
       - airflow-init
