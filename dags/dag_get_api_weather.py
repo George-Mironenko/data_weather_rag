@@ -9,7 +9,7 @@ from airflow.models import Variable
 import logging
 
 from s3_bucket_service.s3_class import S3BucketService
-from .extensions_for_orchestration.validators import validate_cities
+from extensions_for_orchestration.validators import validate_cities
 
 
 def get_s3_client():
