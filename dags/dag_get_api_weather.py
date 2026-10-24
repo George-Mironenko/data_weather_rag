@@ -98,7 +98,7 @@ with DAG(
         }
 
         try:
-            response = requests.get(url=url, params=params, timeout=30)
+            response = requests.get(url=url, params=params, timeout=60)
             task_logger.debug("Сделали запрос к Api")
 
             response.raise_for_status()
