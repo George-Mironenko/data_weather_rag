@@ -17,7 +17,7 @@ def get_s3_client():
     Creating client s3 storage
     """
     return S3BucketService(
-        bucket_name = 'weather-data-pirate',
+        bucket_name = 'weather-data',
         endpoint='https://s3.storage.selcloud.ru',
         access_key=Variable.get("SELECTEL_ACCESS_KEY"),
         secret_key=Variable.get("SELECTEL_SECRET_KEY")
