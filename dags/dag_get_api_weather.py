@@ -53,7 +53,7 @@ with DAG(
         """
         sql_select = 'SELECT name, lat, lon FROM "cities"'
         try:
-            hook = PostgresHook(postgres_conn_id="my_postgres")
+            hook = PostgresHook(postgres_conn_id="weather_dwh")
             task_logger.debug("Успешное подключение к postgres")
 
             records = hook.get_records(sql_select)
@@ -71,7 +71,7 @@ with DAG(
         """Валидирует города из БД."""
         return validate_cities(records)
 
-    @task
+    @task(max_active_tis_per_dag=5)
     def get_city_weather(city_data: str):
         """
         Функция для получения данных о погоде из API
@@ -79,9 +79,9 @@ with DAG(
         :raises requests.exceptions.HTTPError: При HTTP ошибках.
         :raises requests.exceptions.RequestException: При ошибках запроса.
         """
-        city = city_data[0]
-        lat = city_data[1]
-        lon = city_data[2]
+        city = city_data["city"]
+        lat = city_data["lat"]
+        lon = city_data["lon"]
 
         # Получаем api ключ из airflow
         API_KEY = Variable.get("API_PIRATEWEATHER")
@@ -117,7 +117,7 @@ with DAG(
             task_logger.debug("Название файла создано")
 
             # Отправка данных
-            prefix = (f"raw/pirateweather/forecast/{datetime.now().year}/"
+            prefix = (f"weather-data/raw/pirateweather/forecast/{datetime.now().year}/"
                       f"{datetime.now().month:02d}/{datetime.now().day}/")
             s3.upload_file_object(prefix, file_name, json_bytes)
 
@@ -140,5 +140,5 @@ with DAG(
     cities = get_cities_list(records)
 
     # Получаем данные о погоде для каждого города
-    get_city_weather.expand(city=cities).max_active_tis_per_dag(5)
+    get_city_weather.expand(city_data=cities)
 
