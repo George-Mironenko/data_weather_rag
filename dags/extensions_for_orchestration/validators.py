@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def validate_cities(
-    records: tuple[tuple[Any, ...], ...] | None,
+    records: list[tuple[Any, ...]] | tuple[tuple[Any, ...], ...] | None,
 ) -> list[dict] | None:
     """
     Преобразует список кортежей (name, lat, lon) в список словарей.
@@ -24,8 +24,8 @@ def validate_cities(
     :return: Список словарей [{"city": ..., "lat": ..., "lon": ...}]
              или None, если ни одна запись не прошла валидацию
     """
-    if not isinstance(records, tuple):
-        logger.error("Ошибка: в функцию передан не tuple")
+    if not isinstance(records, (tuple, list)):
+        logger.error("Ошибка: в функцию передан не список и не кортеж")
         return None
 
     if not records:
