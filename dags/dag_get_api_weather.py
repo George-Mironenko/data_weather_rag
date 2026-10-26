@@ -118,10 +118,10 @@ with DAG(
 
             # Отправка данных
             prefix = (f"weather-data/raw/pirateweather/forecast/{datetime.now().year}/"
-                      f"{datetime.now().month:02d}/{datetime.now().day}/")
+                      f"{datetime.now().month:02d}/{datetime.now().day}/{city}/")
             s3.upload_file_object(prefix, file_name, json_bytes)
 
-            task_logger.info("Успешно отправили файл в s3")
+            task_logger.info(f"Успешно отправили файл в s3 город {city}")
 
         except requests.exceptions.HTTPError as http_err:
             task_logger.error(f"HTTP ошибка: {http_err}")
