@@ -30,4 +30,4 @@ jobs:
           pip install pytest
 
       - name: Run validators tests
-        run: pytest tests/test_validators.py -v
+        run: pytest test/test_validators.py -v
