@@ -2,6 +2,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Union
 import logging
+import posixpath
 
 import boto3
 from botocore.client import Config
@@ -49,20 +50,30 @@ class S3BucketService:
             logging.error(str(error))
             return None
 
+    @staticmethod
+    def _build_key(prefix: str, source_file_name: str) -> str:
+        """S3-ключ всегда через '/', независимо от ОС."""
+        key = posixpath.join(prefix, source_file_name)
+        key = key.replace("\\", "/")
+        while "//" in key:
+            key = key.replace("//", "/")
+        return key.lstrip("/")
+
     def upload_file_object(
         self,
         prefix: str,
         source_file_name: str,
         content: Union[str, bytes],
-    ) -> None:
+    ) -> str:
         client = self.create_s3_client()
-        destination_path = str(Path(prefix, source_file_name))
+        destination_path = self._build_key(prefix, source_file_name)
 
         if isinstance(content, bytes):
             buffer = BytesIO(content)
         else:
             buffer = BytesIO(content.encode("utf-8"))
         client.upload_fileobj(buffer, self.bucket_name, destination_path)
+        return destination_path
 
     def list_objects(self, prefix: str) -> list[str]:
         client = self.create_s3_client()
@@ -82,7 +93,7 @@ class S3BucketService:
 
     def delete_file_object(self, prefix: str, source_file_name: str) -> None:
         client = self.create_s3_client()
-        path_to_file = str(Path(prefix, source_file_name))
+        path_to_file = self._build_key(prefix, source_file_name)
         client.delete_object(Bucket=self.bucket_name, Key=path_to_file)
 
     def __str__(self):
