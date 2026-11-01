@@ -35,8 +35,5 @@ insert into cities (name, lat, lon) values
     ('Murmansk',68.9585,33.0827),
     ('Magadan',59.5638,150.8035),
     ('Omsk',54.9885,73.3242),
-    ('Sochi',43.6028,39.7342),
-    ('Yakutsk',62.0355,129.6755),
-    ('Astrakhan',46.3497,48.0408)
 on conflict (name) do nothing;
 
