@@ -1,7 +1,5 @@
-import math
 from decimal import Decimal
 
-import pytest
 
 from dags.extensions_for_orchestration.validators import validate_cities
 
