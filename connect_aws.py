@@ -1,4 +1,5 @@
 import os
+from asyncio import to_thread
 
 import duckdb
 from fastapi import FastAPI, HTTPException
@@ -108,9 +109,9 @@ async def ask(request: AskRequest):
 
     # 3. Выполняем через DuckDB
     try:
-        result = con.execute(sql).fetchdf()
+        result = await to_thread(con.execute(sql).fetchdf())
         # Преобразуем DataFrame в список словарей для JSON-ответа
-        data = result.to_dict(orient="records")
+        data = await to_thread(result.to_dict(orient="records"))
         return AskResponse(sql=sql, data=data)
     except Exception as e:
         return AskResponse(sql=sql, data=[], error=f"Ошибка выполнения SQL: {e}")
