@@ -35,8 +35,8 @@ if not S3_KEY or not S3_SECRET:
 con.execute("""
     CREATE OR REPLACE SECRET selectel (
         TYPE S3,
-        KEY_ID '{S3_KEY}',
-        SECRET '{S3_SECRET}',
+        KEY_ID ?,
+        SECRET ?,
         REGION 'ru-1',
         ENDPOINT 's3.ru-1.storage.selcloud.ru',
         URL_STYLE 'path',
