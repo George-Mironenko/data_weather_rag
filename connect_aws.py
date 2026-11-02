@@ -3,9 +3,9 @@ from asyncio import to_thread
 
 import duckdb
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 from openai import AsyncOpenAI, APIConnectionError, APITimeoutError, APIStatusError
 
+from Asks_models import AskRequest, AskResponse
 from is_safe_sql import is_safe_sql
 from load_prompt import load_prompt
 
@@ -51,14 +51,6 @@ SYSTEM_PROMPT = f"""Ты — эксперт по DuckDB SQL. Схема данн
 Сгенерируй ТОЛЬКО SQL-запрос для DuckDB без объяснений и без markdown-разметки.
 Запрос должен быть безопасным (только SELECT или WITH).
 """
-
-class AskRequest(BaseModel):
-    question: str
-
-class AskResponse(BaseModel):
-    sql: str
-    data: list[dict]
-    error: str | None = None
 
 
 def _run_query(sql: str) -> list[dict]:
