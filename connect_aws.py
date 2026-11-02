@@ -6,6 +6,8 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from openai import AsyncOpenAI, APIConnectionError, APITimeoutError, APIStatusError
 
+from load_prompt import load_prompt
+
 app = FastAPI(title="Weather Text-to-SQL API")
 
 # --- Настройки ---
@@ -38,23 +40,8 @@ con.execute(f"""
     );
 """)
 
-# --- Схема для промпта ---
-SCHEMA = """
-Таблица находится в S3:
-read_parquet('s3://weather-data/raw/open-meteo/city=*/data.parquet', filename=true)
-
-Колонки в файлах:
-- date (DATE)
-- temperature_2m_max (DOUBLE)
-- temperature_2m_min (DOUBLE)
-- precipitation_sum (DOUBLE)
-- wind_speed_10m_max (DOUBLE)
-
-Колонка city извлекается из пути (Hive partition), её можно использовать в WHERE.
-"""
-
 SYSTEM_PROMPT = f"""Ты — эксперт по DuckDB SQL. Схема данных:
-{SCHEMA}
+{load_prompt('prompts/text2sql_shema.txt')}
 
 Сгенерируй ТОЛЬКО SQL-запрос для DuckDB без объяснений и без markdown-разметки.
 Запрос должен быть безопасным (только SELECT или WITH).
