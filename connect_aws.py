@@ -28,7 +28,11 @@ aclient = AsyncOpenAI(
 # --- DuckDB подключение (создаём один раз при старте) ---
 con = duckdb.connect(":memory:")
 con.execute("INSTALL httpfs; LOAD httpfs;")
-con.execute(f"""
+
+if not S3_KEY or not S3_SECRET:
+    raise RuntimeError("S3_KEY и S3_SECRET обязательны")
+
+con.execute("""
     CREATE OR REPLACE SECRET selectel (
         TYPE S3,
         KEY_ID '{S3_KEY}',
