@@ -64,11 +64,6 @@ def _run_query(sql: str) -> list[dict]:
     finally:
         cur.close()
 
-def is_safe_sql(sql: str) -> bool:
-    """Разрешаем только SELECT и WITH."""
-    sql_upper = sql.strip().upper()
-    return sql_upper.startswith("SELECT") or sql_upper.startswith("WITH")
-
 
 @app.post("/ask", response_model=AskResponse)
 async def ask(request: AskRequest):
