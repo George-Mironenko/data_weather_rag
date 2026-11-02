@@ -56,6 +56,14 @@ class AskResponse(BaseModel):
     error: str | None = None
 
 
+def _run_query(sql: str) -> list[dict]:
+    cur = con.cursor()          # отдельный курсор — своё состояние
+    try:
+        df = cur.execute(sql).fetchdf()
+        return df.to_dict(orient="records")
+    finally:
+        cur.close()
+
 def is_safe_sql(sql: str) -> bool:
     """Разрешаем только SELECT и WITH."""
     sql_upper = sql.strip().upper()
