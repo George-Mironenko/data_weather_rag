@@ -6,11 +6,12 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from openai import AsyncOpenAI, APIConnectionError, APITimeoutError, APIStatusError
 
+from is_safe_sql import is_safe_sql
 from load_prompt import load_prompt
 
 app = FastAPI(title="Weather Text-to-SQL API")
 
-# --- Настройки ---
+# Setting
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://ollama:11434/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "distil-qwen3-4b-text2sql")
 
@@ -18,7 +19,7 @@ MODEL_NAME = os.getenv("MODEL_NAME", "distil-qwen3-4b-text2sql")
 S3_KEY = os.getenv("S3_KEY")
 S3_SECRET = os.getenv("S3_SECRET")
 
-# --- Клиент для Ollama ---
+# Client for Ollama
 aclient = AsyncOpenAI(
     base_url=OLLAMA_BASE_URL,
     api_key="ollama",
@@ -41,8 +42,8 @@ con.execute("""
         ENDPOINT 's3.ru-1.storage.selcloud.ru',
         URL_STYLE 'path',
         USE_SSL true
-    );
-""")
+    )
+""", [S3_KEY, S3_SECRET])
 
 SYSTEM_PROMPT = f"""Ты — эксперт по DuckDB SQL. Схема данных:
 {load_prompt('prompts/text2sql_shema.txt')}
@@ -63,7 +64,7 @@ class AskResponse(BaseModel):
 def _run_query(sql: str) -> list[dict]:
     cur = con.cursor()          # отдельный курсор — своё состояние
     try:
-        df = cur.execute(sql).fetchdf()
+        df = cur.execute(sql).fetchall()
         return df.to_dict(orient="records")
     finally:
         cur.close()
@@ -103,7 +104,7 @@ async def ask(request: AskRequest):
 
     # 3. Выполняем через DuckDB
     try:
-        result = await to_thread(con.execute(sql).fetchdf())
+        result = await to_thread(_run_query, sql)
         # Преобразуем DataFrame в список словарей для JSON-ответа
         data = await to_thread(result.to_dict(orient="records"))
         return AskResponse(sql=sql, data=data)
