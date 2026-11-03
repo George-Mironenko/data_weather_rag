@@ -1,50 +1,15 @@
-import os
 from asyncio import to_thread
-
-import duckdb
 from fastapi import FastAPI, HTTPException
-from openai import AsyncOpenAI, APIConnectionError, APITimeoutError, APIStatusError
 
 from Asks_models import AskRequest, AskResponse
 from is_safe_sql import is_safe_sql
 from load_prompt import load_prompt
 
+from llm import generate_sql
+from sql_utils import clean_sql
+from db import _run_query
+
 app = FastAPI(title="Weather Text-to-SQL API")
-
-# Setting
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://ollama:11434/v1")
-MODEL_NAME = os.getenv("MODEL_NAME", "distil-qwen3-4b-text2sql")
-
-# S3 настройки (лучше вынести в переменные окружения на сервере)
-S3_KEY = os.getenv("S3_KEY")
-S3_SECRET = os.getenv("S3_SECRET")
-
-# Client for Ollama
-aclient = AsyncOpenAI(
-    base_url=OLLAMA_BASE_URL,
-    api_key="ollama",
-    timeout=60.0,
-)
-
-# --- DuckDB подключение (создаём один раз при старте) ---
-con = duckdb.connect(":memory:")
-con.execute("INSTALL httpfs; LOAD httpfs;")
-
-if not S3_KEY or not S3_SECRET:
-    raise RuntimeError("S3_KEY и S3_SECRET обязательны")
-
-con.execute("""
-    CREATE OR REPLACE SECRET selectel (
-        TYPE S3,
-        KEY_ID ?,
-        SECRET ?,
-        REGION 'ru-1',
-        ENDPOINT 's3.ru-1.storage.selcloud.ru',
-        URL_STYLE 'path',
-        USE_SSL true
-    )
-""", [S3_KEY, S3_SECRET])
-
 SYSTEM_PROMPT = f"""Ты — эксперт по DuckDB SQL. Схема данных:
 {load_prompt('prompts/text2sql_shema.txt')}
 
@@ -52,57 +17,24 @@ SYSTEM_PROMPT = f"""Ты — эксперт по DuckDB SQL. Схема данн
 Запрос должен быть безопасным (только SELECT или WITH).
 """
 
-
-def _run_query(sql: str) -> list[dict]:
-    cur = con.cursor()          # отдельный курсор — своё состояние
-    try:
-        df = cur.execute(sql).fetchall()
-        return df.to_dict(orient="records")
-    finally:
-        cur.close()
-
-
 @app.post("/ask", response_model=AskResponse)
 async def ask(request: AskRequest):
-    # 1. Генерируем SQL через Ollama
-    try:
-        response = await aclient.chat.completions.create(
-            model=MODEL_NAME,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": request.question},
-            ],
-            temperature=0,
-        )
-        sql = response.choices[0].message.content.strip()
-    except APIConnectionError:
-        # Ollama не запущена / сеть недоступна → 503
-        raise HTTPException(503, "Ollama недоступна")
-    except APITimeoutError:
-        # Тайм-аут → 504
-        raise HTTPException(504, "Тайм-аут модели")
-    except APIStatusError as e:
-        # Ollama вернула ошибку (например, модель не найдена) → 502
-        raise HTTPException(502, f"Ошибка Ollama: {e}")
+    raw = await generate_sql(SYSTEM_PROMPT, request.question)
+    sql = clean_sql(raw)
 
-    # Убираем возможные markdown-обёртки
-    if sql.startswith("```"):
-        sql = sql.split("\n", 1)[1] if "\n" in sql else sql
-        sql = sql.rsplit("```", 1)[0].strip()
-
-    # 2. Проверка безопасности
     if not is_safe_sql(sql):
-        return AskResponse(sql=sql, data=[], error="Сгенерированный SQL не является безопасным (только SELECT/WITH).")
+        return AskResponse(
+            sql=sql,
+            data=[],
+            error="Сгенерированный SQL не является безопасным (только SELECT/WITH).",
+        )
 
-    # 3. Выполняем через DuckDB
     try:
-        result = await to_thread(_run_query, sql)
-        # Преобразуем DataFrame в список словарей для JSON-ответа
-        data = await to_thread(result.to_dict(orient="records"))
-        return AskResponse(sql=sql, data=data)
+        data = await to_thread(_run_query, sql)
     except Exception as e:
         return AskResponse(sql=sql, data=[], error=f"Ошибка выполнения SQL: {e}")
 
+    return AskResponse(sql=sql, data=data)
 
 @app.get("/health")
 def health():
