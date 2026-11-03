@@ -10,8 +10,6 @@ from sql_utils import clean_sql
 from db import _run_query
 
 app = FastAPI(title="Weather Text-to-SQL API")
-SYSTEM_PROMPT = f"""Ты — эксперт по DuckDB SQL. Схема данных:
-{load_prompt('prompts/text2sql_shema.txt')}
 
 SYSTEM_PROMPT = (
     load_prompt("text2sql_system.txt")
