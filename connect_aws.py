@@ -13,9 +13,11 @@ app = FastAPI(title="Weather Text-to-SQL API")
 SYSTEM_PROMPT = f"""Ты — эксперт по DuckDB SQL. Схема данных:
 {load_prompt('prompts/text2sql_shema.txt')}
 
-Сгенерируй ТОЛЬКО SQL-запрос для DuckDB без объяснений и без markdown-разметки.
-Запрос должен быть безопасным (только SELECT или WITH).
-"""
+SYSTEM_PROMPT = (
+    load_prompt("text2sql_system.txt")
+    + "\n\nСхема данных:\n"
+    + load_prompt("text2sql_schema.txt")
+)
 
 @app.post("/ask", response_model=AskResponse)
 async def ask(request: AskRequest):
