@@ -1,0 +1,75 @@
+# --- Версионирование и Git ---
+.git
+.gitignore
+.github
+.gitlab-ci.yml
+
+# --- Окружение Python и Кэш ---
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.poetry/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Локальные данные и Дампы (Очень важно для DE!) ---
+**/data/
+**/datasets/
+*.csv
+*.parquet
+*.jsonl
+*.avro
+*.orc
+*.db
+*.sqlite
+*.sqlite3
+*.sql
+*.gz
+*.zip
+*.tar.gz
+
+# --- Логи и Тайм-ауты ---
+*.log
+**/logs/
+**/airflow/logs/
+
+# --- Секреты и Настройки (Безопасность!) ---
+.env
+*.env
+.env.*
+secrets.*/
+*.pem
+*.key
+*.gitattributes
+
+# --- Специфичные инструменты Data Engineering ---
+# Airflow / Astronomer
+.astro/
+airflow.cfg
+airflow.db
+
+orchestration/config/
+
+# dbt (Data Build Tool)
+**/dbt_packages/
+**/target/
+profiles.yml
+
+# Jupyter Notebooks (Оставляем .ipynb в git, но не берем в Docker)
+**/.ipynb_checkpoints/
+
+# IDE и Системные файлы ---
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
