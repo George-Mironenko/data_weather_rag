@@ -1,5 +1,6 @@
 import re
 
+
 def clean_sql(raw: str) -> str:
     text = raw.strip()
     text = re.sub(r"^```(?:sql)?\s*", "", text, flags=re.IGNORECASE)

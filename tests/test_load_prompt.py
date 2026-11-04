@@ -1,11 +1,7 @@
 import pytest
-from pathlib import Path
 
-# Импортируем функцию и её приватный путь к каталогу промптов
-from load_prompt import load_prompt, _PROMPTS_DIR
+from app.utils.prompts import load_prompt, _PROMPTS_DIR
 
-
-# ---------- Фикстура: подменяем каталог промптов на временный ----------
 
 @pytest.fixture
 def prompts_dir(tmp_path, monkeypatch):
@@ -13,11 +9,10 @@ def prompts_dir(tmp_path, monkeypatch):
     Подменяет _PROMPTS_DIR на tmp_path, чтобы тесты не зависели
     от реальных файлов в проекте и не писали в репозиторий.
     """
-    monkeypatch.setattr("load_prompt._PROMPTS_DIR", tmp_path)
+    monkeypatch.setattr("app.utils.prompts._PROMPTS_DIR", tmp_path)
     return tmp_path
 
 
-# ---------- 1. Базовое чтение файла ----------
 
 def test_loads_file_without_kwargs(prompts_dir):
     """Файл читается как есть, без .format()."""
@@ -38,7 +33,6 @@ def test_strips_trailing_whitespace(prompts_dir):
     assert not result.endswith("\n")
 
 
-# ---------- 2. Фигурные скобки без kwargs не ломаются ----------
 
 def test_curly_braces_preserved_when_no_kwargs(prompts_dir):
     """

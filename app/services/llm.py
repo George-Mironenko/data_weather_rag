@@ -3,6 +3,7 @@ from os import getenv
 from openai import AsyncOpenAI, APIConnectionError, APITimeoutError, APIStatusError
 from fastapi import HTTPException
 
+
 aclient = AsyncOpenAI(
     base_url=getenv("OLLAMA_BASE_URL", "http://ollama:11434/v1"),
     api_key="ollama",

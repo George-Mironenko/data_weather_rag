@@ -28,7 +28,7 @@ con.execute("""
 
 LIMIT_ROWS = 10_000
 
-def _run_query(sql: str) -> list[dict]:
+def run_query(sql: str) -> list[dict]:
     safe_sql = f"SELECT * FROM ({sql}) AS _sub LIMIT {LIMIT_ROWS}"
     cur = con.cursor()
     try:

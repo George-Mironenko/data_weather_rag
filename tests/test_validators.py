@@ -1,7 +1,7 @@
 from decimal import Decimal
 
+from orchestration.dags.extensions_for_orchestration.validators import validate_cities
 
-from dags.extensions_for_orchestration.validators import validate_cities
 
 def test_empty_input_returns_none():
     assert validate_cities(None) is None

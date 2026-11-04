@@ -1,13 +1,14 @@
 from asyncio import to_thread
-from fastapi import FastAPI, HTTPException
 
-from Asks_models import AskRequest, AskResponse
-from is_safe_sql import is_safe_sql
-from load_prompt import load_prompt
+from fastapi import FastAPI
 
-from llm import generate_sql
-from sql_utils import clean_sql
-from db import _run_query
+from app.api.models import AskRequest, AskResponse
+from app.services.sql_safety import is_safe_sql
+from app.services.sql import clean_sql
+from app.services.llm import generate_sql
+from app.utils.prompts import load_prompt
+from app.db.duckdb_client import run_query
+
 
 app = FastAPI(title="Weather Text-to-SQL API")
 
@@ -30,7 +31,7 @@ async def ask(request: AskRequest):
         )
 
     try:
-        data = await to_thread(_run_query, sql)
+        data = await to_thread(run_query, sql)
     except Exception as e:
         return AskResponse(sql=sql, data=[], error=f"Ошибка выполнения SQL: {e}")
 

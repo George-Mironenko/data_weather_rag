@@ -1,5 +1,5 @@
-import pandas as pd
 import requests
+import pandas as pd
 
 
 def fetch_city_data(
