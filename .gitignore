@@ -1,0 +1,87 @@
+# Никогда не пушьте сырые, обработанные или временные данные в Git!
+data/
+*.csv
+*.parquet
+*.avro
+*.jsonl
+*.json
+*.tsv
+*.xlsx
+*.pickle
+*.pkl
+*.db
+*.sqlite
+*.sql
+*.dump
+
+# Файлы с паролями, токенами доступа и ключами к облакам
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.json_credentials
+*.service_account
+credentials/
+secrets/
+.configs/
+
+# Airflow (локальные логи, базы и конфиги)
+airflow/logs/
+airflow/airflow.db
+airflow/airflow.cfg
+airflow/webserver_config.py
+
+# Prefect
+.prefect/
+prefect.db
+
+# dbt (компилированные файлы и логи)
+dbt_modules/
+dbt_packages/
+logs/
+target/
+
+# Spark / Hadoop
+.spark-stubs/
+spark-warehouse/
+metastore_db/
+derby.log
+checkpoint/
+
+venv/
+.venv/
+env/
+.env/
+ENV/
+bin/
+lib/
+include/
+pip-log.txt
+pip-delete-this-directory.txt
+.ipynb_checkpoints/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Docker / LocalStack
+.docker/
+.localstack/
+
+# Terraform (если инфраструктура рядом с кодом)
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.tfstate.lock.info
+*.tfvars
+*.tfvars.json
+
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+.DS_Store
+Thumbs.db
