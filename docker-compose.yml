@@ -126,6 +126,7 @@ services:
       - "8000:8000"  # Этот порт будет смотреть в интернет (через Nginx)
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434/v1
+      - MODEL_NAME=distil-qwen3-4b-text2sql
     depends_on:
           - ollama
     restart: unless-stopped
