@@ -12,22 +12,17 @@ if not S3_KEY or not S3_SECRET:
 
 con = duckdb.connect(":memory:")
 
-con.execute("INSTALL httpfs; LOAD httpfs;")
-
-if not S3_KEY or not S3_SECRET:
-    raise RuntimeError("S3_KEY и S3_SECRET обязательны")
-
-con.execute("""
+con.execute(f"""
     CREATE OR REPLACE SECRET selectel (
         TYPE S3,
-        KEY_ID ?,
-        SECRET ?,
+        KEY_ID '{S3_KEY}',
+        SECRET '{S3_SECRET}',
         REGION 'ru-1',
-        ENDPOINT 's3.ru-1.storage.selcloud.ru',
+        ENDPOINT 's3.storage.selcloud.ru',
         URL_STYLE 'path',
         USE_SSL true
-    )
-""", [S3_KEY, S3_SECRET])
+    );
+""")
 
 LIMIT_ROWS = 10_000
 
