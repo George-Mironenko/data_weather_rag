@@ -1,0 +1,33 @@
+Таблица находится в S3:
+read_parquet('s3://weather-data/raw/open-meteo/city=*/data.parquet', hive_partitioning=true)
+
+Колонки в таблице:
+- time (DATE) — дата наблюдения
+- temperature_2m_max (DOUBLE) — максимальная температура
+- temperature_2m_min (DOUBLE) — минимальная температура
+- precipitation_sum (DOUBLE) — сумма осадков
+- wind_speed_10m_max (DOUBLE) — максимальная скорость ветра
+- city (VARCHAR) — название города (Hive partition)
+
+ВНИМАНИЕ! В базе данных колонка city содержит названия городов СТРОГО на английском языке.
+Если пользователь спрашивает про город на русском, ты ОБЯЗАН использовать его английское название в SQL.
+
+Список доступных городов (используй ТОЛЬКО их):
+- Chelyabinsk (Челябинск)
+- Kaliningrad (Калининград)
+- Krasnodar (Краснодар)
+- Magadan (Магадан)
+- Moscow (Москва)
+- Murmansk (Мурманск)
+- Novosibirsk (Новосибирск)
+- Omsk (Омск)
+- Saint Petersburg (Санкт-Петербург)
+- Vladivostok (Владивосток)
+- Yekaterinburg (Екатеринбург)
+
+Примеры:
+Вопрос: "Какая максимальная температура была в Москве в январе 2021?"
+SQL: SELECT MAX(temperature_2m_max) FROM read_parquet('s3://weather-data/raw/open-meteo/city=*/data.parquet', hive_partitioning=true) WHERE city = 'Moscow' AND time >= '2021-01-01' AND time <= '2021-01-31';
+
+Вопрос: "Покажи погоду в Челябинске за 1 января 2021"
+SQL: SELECT * FROM read_parquet('s3://weather-data/raw/open-meteo/city=*/data.parquet', hive_partitioning=true) WHERE city = 'Chelyabinsk' AND time = '2021-01-01' LIMIT 1000;

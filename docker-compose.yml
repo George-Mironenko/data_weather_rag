@@ -91,5 +91,51 @@ services:
       retries: 5
       start_period: 30s
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: weather-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+       - "11434:11434"  # Можно не пробрасывать наружу, если API в той же сети
+    restart: unless-stopped
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: weather-ollama-init
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./models:/models:ro
+    entrypoint: [ "/bin/sh", "-c" ]
+    command:
+      - |
+        echo "Waiting for Ollama..."
+        until ollama list >/dev/null 2>&1; do sleep 1; done
+        echo "Creating model..."
+        ollama create distil-qwen3-4b-text2sql -f /models/Modelfile
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    restart: "no"
+
+  api:
+    build: .
+    container_name: weather-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434/v1
+      - MODEL_NAME=distil-qwen3-4b-text2sql
+    depends_on:
+      ollama-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
 volumes:
   postgres-db-volume:
+  ollama_data:
