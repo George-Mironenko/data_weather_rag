@@ -117,6 +117,8 @@ services:
         ollama create distil-qwen3-4b-text2sql -f /models/Modelfile
     depends_on:
       - ollama
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
     restart: "no"
 
   api:
