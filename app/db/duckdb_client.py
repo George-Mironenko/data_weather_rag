@@ -7,6 +7,9 @@ import duckdb
 S3_KEY = getenv("S3_KEY")
 S3_SECRET = getenv("S3_SECRET")
 
+if not S3_KEY or not S3_SECRET:
+    raise RuntimeError("S3_KEY и S3_SECRET обязательны")
+
 con = duckdb.connect(":memory:")
 
 con.execute("INSTALL httpfs; LOAD httpfs;")
