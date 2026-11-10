@@ -7,7 +7,7 @@ from app.utils.prompts import load_prompt, _PROMPTS_DIR
 def prompts_dir(tmp_path, monkeypatch):
     """
     Подменяет _PROMPTS_DIR на tmp_path, чтобы тесты не зависели
-    от реальных файлов в проекте и не писали в репозиторий.
+    от реальных файлов в проекте и не писали в репозиторий
     """
     monkeypatch.setattr("app.utils.prompts._PROMPTS_DIR", tmp_path)
     return tmp_path
