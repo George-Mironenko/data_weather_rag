@@ -136,6 +136,22 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
 
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: weather-webui
+    ports:
+      - "3000:8080"  # Открываем порт 3000 на твоем компьютере
+    volumes:
+      - open-webui-data:/app/backend/data  # Чтобы история чатов не пропадала
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434  # Ссылаемся на контейнер ollama
+      - WEBUI_SECRET_KEY=password123456qwerty  # Смени на что-то свое
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+
 volumes:
   postgres-db-volume:
   ollama_data:
+  open-webui-data:
