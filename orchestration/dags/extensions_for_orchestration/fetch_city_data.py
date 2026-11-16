@@ -29,3 +29,31 @@ def fetch_city_data(
     df = pd.DataFrame(data["daily"])
     df["city"] = city
     return df
+
+def fetch_only_check_city_data(
+        start_date: str,
+        end_date: str,
+) -> bool:
+    """
+    Эта фукнция только проверяет, что данные в api есть.
+    :param start_date:
+    :param end_date:
+    :return:
+    """
+    params = {
+        "latitude": 55.755855,
+        "longitude": 37.6173,
+        "start_date": start_date,
+        "end_date": end_date,
+        "daily": 'temperature_2m_max',
+        "timezone": "auto",
+    }
+    resp = requests.get(
+        "https://archive-api.open-meteo.com/v1/archive",
+        params=params,
+        timeout=60,
+    )
+    if resp.status_code == 200 and resp.text:
+        return True
+    else:
+        return False
