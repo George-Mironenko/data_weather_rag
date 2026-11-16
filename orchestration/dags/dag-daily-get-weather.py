@@ -80,6 +80,20 @@ with DAG(
             for c in cities
         ]
 
+    task.short_circuit()
+    def check_data_api():
+        """
+        Это проверка, что данные у нас есть
+        :return:
+        """
+        target_date: date = date.today() - timedelta(days=1)
+
+        return fetch_only_check_city_data(
+            start_date=target_date.isoformat(),
+            end_date=target_date.isoformat(),
+        )
+
+
     @task(max_active_tis_per_dag=5)
     def get_city_weather(city_data: dict) -> str:
         """Запрашивает один день по одному городу и кладёт Parquet в S3."""
