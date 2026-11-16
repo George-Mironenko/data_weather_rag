@@ -48,12 +48,17 @@ def fetch_only_check_city_data(
         "daily": 'temperature_2m_max',
         "timezone": "auto",
     }
-    resp = requests.get(
-        "https://archive-api.open-meteo.com/v1/archive",
-        params=params,
-        timeout=60,
-    )
-    if resp.status_code == 200 and resp.text:
-        return True
-    else:
+
+    try:
+        resp = requests.get(
+            "https://archive-api.open-meteo.com/v1/archive",
+            params=params,
+            timeout=60,
+        )
+        resp.raise_for_status()
+    except requests.RequestException:
         return False
+
+    daily = resp.json().get("daily", {})
+    values = daily.get("temperature_2m_max") or []
+    return any(v is not None for v in values)
