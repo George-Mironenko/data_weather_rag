@@ -12,7 +12,7 @@ import pyarrow.parquet as pq
 
 from infra.s3.s3_class import S3BucketService
 from extensions_for_orchestration.validators import validate_cities
-from extensions_for_orchestration.fetch_city_data import fetch_city_data
+from extensions_for_orchestration.fetch_city_data import fetch_city_data, fetch_only_check_city_data
 
 
 def get_s3_client():
@@ -22,7 +22,6 @@ def get_s3_client():
         access_key=Variable.get("SELECTEL_ACCESS_KEY"),
         secret_key=Variable.get("SELECTEL_SECRET_KEY"),
     )
-
 
 task_logger = logging.getLogger("airflow.task")
 
@@ -84,7 +83,6 @@ with DAG(
     def check_data_api():
         """
         Это проверка, что данные у нас есть
-        :return:
         """
         target_date: date = date.today() - timedelta(days=1)
 
@@ -102,7 +100,6 @@ with DAG(
         lon = city_data["lon"]
         variables = city_data["variables"]
 
-        # Архив отстаёт, поэтому берём вчерашний день (можно расширить до 7 дней назад)
         target_date: date = date.today() - timedelta(days=1)
 
         try:
@@ -146,7 +143,12 @@ with DAG(
             task_logger.error(f"Ошибка [{city}]: {e}")
             raise
 
-    # Пайплайн
+
+    # Data pipeline
     records = get_list_cities()
     payloads = build_city_payloads(records)
-    get_city_weather.expand(city_data=payloads)
+
+    check = check_data_api()
+    weather = get_city_weather.expand(city_data=payloads)
+
+    check >> weather
