@@ -80,7 +80,7 @@ with DAG(
             for c in cities
         ]
 
-    task.short_circuit()
+    @task.short_circuit()
     def check_data_api():
         """
         Это проверка, что данные у нас есть
