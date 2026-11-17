@@ -42,6 +42,7 @@ default_args = {
 with DAG(
     dag_id='dag_daily_weather',
     default_args=default_args,
+    tags=["s3", "raw"],
     schedule='@daily',
     catchup=False,
 ) as dag:
