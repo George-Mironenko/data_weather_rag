@@ -60,9 +60,11 @@ with DAG(
     dag_id='dag_daily_weather',
     default_args=default_args,
     tags=["s3", "raw"],
+    description=SHORT_DESCRIPTION,
     schedule='@daily',
     catchup=False,
 ) as dag:
+    dag.doc_md = LONG_DESCRIPTION
 
     @task
     def get_list_cities() -> dict:
