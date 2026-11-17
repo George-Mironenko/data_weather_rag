@@ -25,6 +25,23 @@ def get_s3_client():
 
 task_logger = logging.getLogger("airflow.task")
 
+LONG_DESCRIPTION = """
+# Daily Weather Ingestion
+
+Fetches daily weather data from the Open-Meteo archive API for every city
+stored in the `weather_dwh` Postgres database and uploads it to S3 as
+Parquet files.
+
+**Flow:** `get_list_cities` → `build_city_payloads` → `check_data_api` →
+`get_city_weather` (mapped per city).
+
+**Output:** `s3://weather-data/weather-data/raw/open-meteo/city=<city>/date=<YYYY-MM-DD>/data.parquet`
+
+**Schedule:** `@daily` (ingests data for `today - 1 day`).
+"""
+
+SHORT_DESCRIPTION = "Daily Open-Meteo weather data → S3 (Parquet)."
+
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
