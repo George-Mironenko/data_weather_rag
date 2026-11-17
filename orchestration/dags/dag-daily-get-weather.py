@@ -28,7 +28,7 @@ task_logger = logging.getLogger("airflow.task")
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(year=2025, month=11, day=10),
+    'start_date': datetime(year=2026, month=10, day=30),
     'email_on_failure': True,
     'email': ['georgijmironenko36@gmail.com'],
     'retries': 4,
