@@ -32,6 +32,7 @@ default_args = {
     'email_on_failure': True,
     'email': ['georgijmironenko36@gmail.com'],
     'retries': 4,
+    "catchup": True,
     'retry_delay': timedelta(minutes=2),
     'retry_exponential_backoff': True,
     'max_retry_delay': timedelta(minutes=10),
