@@ -40,8 +40,6 @@ Parquet files.
 **Schedule:** `@daily` (ingests data for `today - 1 day`).
 """
 
-SHORT_DESCRIPTION = "Daily Open-Meteo weather data → S3 (Parquet)."
-
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
@@ -60,9 +58,8 @@ with DAG(
     dag_id='dag_daily_weather',
     default_args=default_args,
     tags=["s3", "raw"],
-    description=SHORT_DESCRIPTION,
-    schedule='@daily',
-    catchup=False,
+    description="Daily Open-Meteo weather data → S3 (Parquet).",
+    schedule='@daily'
 ) as dag:
     dag.doc_md = LONG_DESCRIPTION
 
@@ -101,15 +98,15 @@ with DAG(
         ]
 
     @task.short_circuit()
-    def check_data_api():
+    def check_data_api(ds: str | None = None):
         """
         Это проверка, что данные у нас есть
         """
-        target_date: date = date.today() - timedelta(days=1)
+        target_date_str = ds
 
         return fetch_only_check_city_data(
-            start_date=target_date.isoformat(),
-            end_date=target_date.isoformat(),
+            start_date=target_date_str,
+            end_date=target_date_str,
         )
 
 
