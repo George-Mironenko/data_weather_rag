@@ -8,7 +8,7 @@ from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.models import Variable
 import logging
 
-from infra.s3.s3_class import S3BucketService
+from extensions_for_orchestration.s3_class import S3BucketService
 from extensions_for_orchestration.validators import validate_cities
 
 

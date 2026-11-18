@@ -10,7 +10,7 @@ import logging
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from infra.s3.s3_class import S3BucketService
+from extensions_for_orchestration.s3_class import S3BucketService
 from extensions_for_orchestration.validators import validate_cities
 from extensions_for_orchestration.fetch_city_data import fetch_city_data, fetch_only_check_city_data
 
