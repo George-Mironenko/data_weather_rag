@@ -114,28 +114,28 @@ with DAG(
 
 
     @task(max_active_tis_per_dag=5)
-    def get_city_weather(city_data: dict) -> str:
+    def get_city_weather(city_data: dict, ds: str | None = None) -> str:
         """Запрашивает один день по одному городу и кладёт Parquet в S3."""
         city = city_data["city"]
         lat = city_data["lat"]
         lon = city_data["lon"]
         variables = city_data["variables"]
 
-        target_date: date = date.today() - timedelta(days=1)
+        target_date_str = ds
 
         try:
             df = fetch_city_data(
                 city=city,
                 lat=lat,
                 lon=lon,
-                start_date=target_date.isoformat(),
-                end_date=target_date.isoformat(),
+                start_date=target_date_str,
+                end_date=target_date_str,
                 daily_variables=variables,
             )
 
             if df is None or df.empty:
-                task_logger.warning(f"[{city}] {target_date}: данных нет в архиве, пропуск")
-                return f"skipped:{city}:{target_date}"
+                task_logger.warning(f"[{city}] {target_date_str }: данных нет в архиве, пропуск")
+                return f"skipped:{city}:{target_date_str}"
 
             table = pa.Table.from_pandas(df)
             buffer = BytesIO()
@@ -144,14 +144,14 @@ with DAG(
             s3 = get_s3_client()
             key_prefix = (
                 f"weather-data/weather-data/raw/open-meteo/"
-                f"city={city}/date={target_date.isoformat()}"
+                f"city={city}/date={target_date_str}"
             )
             s3.upload_file_object(
                 prefix=key_prefix,
                 source_file_name="data.parquet",
                 content=buffer.getvalue(),
             )
-            task_logger.info(f"[{city}] {target_date} -> s3://{key_prefix}/data.parquet")
+            task_logger.info(f"[{city}] {target_date_str} -> s3://{key_prefix}/data.parquet")
             return f"s3://{key_prefix}/data.parquet"
 
         except requests.exceptions.HTTPError as http_err:
