@@ -140,7 +140,7 @@ with DAG(
 
             s3 = get_s3_client()
             key_prefix = (
-                f"weather-data/weather-data/raw/open-meteo/"
+                f"raw/open-meteo/"
                 f"city={city}/date={target_date_str}"
             )
             s3.upload_file_object(
